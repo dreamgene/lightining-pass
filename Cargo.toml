@@ -1,7 +1,12 @@
 [workspace]
 members = [
     "crates/access_token",
+    "crates/api_server",
     "crates/lightning_node",
+    "crates/payment_core",
+    "crates/qr",
+    "crates/shared_types",
+    "crates/stellar_adapter",
     "crates/verifier_cli",
 ]
 resolver = "2"
@@ -23,5 +28,6 @@ clap = { version = "4", features = ["derive"] }
 base64 = "0.21"
 breez-sdk-core = { git = "https://github.com/breez/breez-sdk", tag = "0.8.0" }
 async-trait = "0.1"
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 
 [patch.crates-io]

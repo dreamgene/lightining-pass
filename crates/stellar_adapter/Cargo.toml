@@ -1,0 +1,13 @@
+[package]
+name = "stellar_adapter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+payment_core = { path = "../payment_core" }
+rand = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+shared_types = { path = "../shared_types" }

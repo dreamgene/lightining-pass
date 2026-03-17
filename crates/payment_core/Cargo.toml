@@ -1,0 +1,9 @@
+[package]
+name = "payment_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+shared_types = { path = "../shared_types" }

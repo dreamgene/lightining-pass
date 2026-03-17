@@ -1,519 +1,349 @@
-# HASKE ⚡🎟️
+# HASKE Stellar Pass ⚡✨
 
 **Payment-settled access that works offline.**
 
-HASkE Pass is a minimal platform that turns a Lightning payment into a
-cryptographically verifiable access pass (QR code) that can be checked
+HASKE Stellar Pass is a minimal platform that turns a confirmed Stellar payment
+into a cryptographically verifiable access pass that can be checked
 **without internet access**.
 
 There are:
 - No user accounts
-- No ticket databases
-- No online verification servers at the gate
+- No ticket database at the gate
+- No online verification service during entry
 
-Access is derived directly from payment settlement.
+Access is derived directly from confirmed payment settlement.
 
 ---
 
 ## Scope
 
-**A Lightning payment settles and immediately yields a signed access pass that can be verified offline, with no accounts, dashboards, refunds, subscriptions, or online verification databases.**
+**A Stellar payment confirms on-chain and yields a signed access pass that can be verified offline, with no accounts, dashboards, subscriptions, or online gate checks.**
 
-Must-build components:
-- Lightning payment receiver (Breez SDK) that confirms settlement
-- Access token issuer that signs a pass after settlement
-- QR encoder for the signed pass
-- Offline verifier (CLI) that validates the signature
-- Minimal buyer-facing checkout page to display invoice and pass
-
----
-
-## Demo Screenshots
-
-### 1. Buyer Pays Invoice
-
-![Invoice QR](screenshots/invoice_qr.png)
-
-> The buyer scans this Lightning invoice QR with any Lightning wallet.
+Current build targets:
+- Stellar payment request generation
+- Payment detection via Horizon account payment queries
+- Access token issuance after payment confirmation
+- QR encoding for the payment request and access pass
+- Offline verifier CLI for signed tokens
+- Minimal Axum API for buyer-facing checkout flows
 
 ---
 
-### 2. Payment Settled, Access Token Generated
+## Core Paradigm
 
-![Access QR](screenshots/access_qr.png)
+Old Lightning model:
+- Payment proof = preimage
+- Settlement event = `InvoicePaid`
+- Trust anchor = HTLC settlement
 
-> Once payment is claimed, a cryptographically signed access token is issued as a QR.
-
----
-
-### 3. Offline Verification
-
-![Verifier CLI](screenshots/verifier_cli.png)
-
-> The gate scanner verifies the token offline. VALID -> access granted.
+Current Stellar model:
+- Payment proof = transaction hash + ledger inclusion
+- Settlement event = confirmed payment operation
+- Trust anchor = Stellar consensus + issuer signature
 
 ---
 
-## System Architecture (Breez)
-
-Component diagram (text-based):
+## System Architecture
 
 Buyer Phone
-|  (LN payment + QR display)
+|
+| (XLM / token payment)
 v
-Rust API (axum)
-|  - invoice endpoint
-|  - payment status
-|  - token signing (Ed25519)
+Stellar Network
+|
+| (payment confirmed)
 v
-Lightning Node (Breez SDK)
+Rust API (Axum)
+|  - create payment request
+|  - monitor address + memo
+|  - issue signed access token
+v
+Access Token (Ed25519)
 |
 v
-Access Token Generator
-|  - creates token payload
-|  - signs with Ed25519 private key
-v
 QR Encoder
-|  - encodes signed token as QR
-v
-Buyer Phone (shows access QR)
 |
 v
 Gate Verifier (offline CLI)
-|  - verifies Ed25519 signature
-|  - checks token fields (expiry, amount, nonce)
 
 Data flow from payment to gate entry:
-- Buyer requests invoice from Rust API.
-- API asks Breez SDK to create invoice.
-- Buyer pays invoice with a Lightning wallet.
-- Breez SDK reports settlement to the API.
-- API builds token payload (payment hash, amount, expiry, nonce).
-- API signs token with Ed25519 private key.
-- API returns signed token and QR payload to buyer.
-- Buyer presents QR at gate.
-- Offline verifier scans QR, decodes signed token, verifies Ed25519 signature, checks fields, grants access.
+- Buyer requests a payment session from the API.
+- API returns a Stellar destination address, amount, asset, memo, and wallet QR payload.
+- Buyer pays using a Stellar wallet.
+- API polls Horizon for a confirmed payment matching destination, memo, amount, and asset.
+- API builds an access token from the confirmed payment details.
+- API signs the token with an Ed25519 private key.
+- Buyer receives the signed token and QR.
+- Gate verifier validates the signature offline and checks expiry.
 
 What runs online vs offline:
-- Online: Rust API (axum), Breez SDK Lightning node, token signing service (Ed25519 private key), QR generation endpoint.
-- Offline: Gate verifier CLI, Ed25519 public key for signature verification, token validation logic (expiry/amount/nonce checks).
+- Online: Axum API, Stellar Horizon lookups, token signing service, QR generation.
+- Offline: verifier CLI, embedded or supplied Ed25519 public key, token validation logic.
 
 ---
 
-## Lightning Node Setup (Breez SDK)
+## Workspace Layout
 
-The node is created with `BreezServices::init` and runs entirely in-process (no external LDK daemon). It creates invoices and listens for `InvoicePaid` events from Breez.
+The workspace is now split around a pluggable payment layer:
 
-Implementation lives in:
-- `crates/lightning_node/src/main.rs` (wires Breez services, HTTP server, and payment listener)
-- `crates/lightning_node/src/layers/lightning.rs` (Breez gateway + event forwarder)
-- `crates/lightning_node/src/layers/access.rs` and `crates/lightning_node/src/layers/proof.rs` (API + token issuance)
+- `crates/api_server`
+  Axum server, routes, watcher loop, in-memory session state, and token issuance orchestration.
+- `crates/payment_core`
+  Payment abstraction traits used by the API layer.
+- `crates/stellar_adapter`
+  Stellar-specific payment request creation, memo generation, Horizon client logic, and payment parsing.
+- `crates/access_token`
+  Signed token types plus signing and verification helpers.
+- `crates/qr`
+  ASCII and PNG QR generation helpers.
+- `crates/shared_types`
+  Shared request/response structs and payment event types.
+- `crates/verifier_cli`
+  Offline verifier for signed access tokens and QR images.
 
-Notes:
-- Default network is Signet unless overridden via `LIGHTNING_NODE_NETWORK` (`bitcoin`, `signet`, `regtest` supported).
-- `BREEZ_MNEMONIC` is required; `BREEZ_API_KEY` is optional for hosted services.
-- `BREEZ_WORKDIR` defaults to `./data/breez` and is created automatically.
-- Breez surfaces an on-chain address via `services.onchain_address()`; channels are opened automatically via LSP once funded.
-- Demo auto-funding: set `LIGHTNING_PASS_FAUCET_URL` (and optional `LIGHTNING_PASS_FAUCET_KEY`) plus `LIGHTNING_PASS_AUTO_FUND_SATS` to request signet/regtest sats into the Breez wallet using `FundingLayer::bitcoin_signet_default`.
-- Payment flow (Breez):
-  1. `BreezServices::init` (Signet by default).
-  2. Get on-chain address (`services.onchain_address()`), fund via faucet.
-  3. Create invoice (`services.receive_payment` via `LightningGateway`).
-  4. Listen for `BreezEvent::InvoicePaid` and issue the access token.
-
----
-
-## Threat Model (Simple)
-
-- Screenshot reuse: short token expiry and a per-token nonce make screenshots time-limited; verifier rejects expired tokens without needing any database.
-- Fake QR codes: Ed25519 signatures ensure only issuer-signed tokens validate; unverifiable tokens are rejected offline.
-- Double entry: enforce short expiries and include event-specific context in the signed payload (e.g., amount/venue/time); without a database, this reduces replay window and ties access to a specific event.
-- Clock drift: allow a small verification grace window (e.g., +/- 60s) and keep verifier devices synced periodically; still offline at verify time.
+The legacy Lightning implementation still exists in `crates/lightning_node` as a reference path during migration, but the new architecture is centered on `api_server` + `stellar_adapter`.
 
 ---
 
-## Token Signing Module (Ed25519)
+## New API
 
-Minimal Rust module that takes `payment_hash + expiry + event_id`, signs it with Ed25519, and outputs a compact encoded string:
+Endpoints exposed by the new server:
 
-Implementation lives in `crates/access_token/src/compact.rs`.
+- `POST /api/payment-request`
+  Creates a Stellar payment request and returns destination, amount, asset, memo, and QR payload.
+- `GET /api/payment-status/:session_id`
+  Returns whether payment has been detected and, if available, the issued access token and QR.
+- `GET /api/access-token/:session_id`
+  Returns the same token-bearing status response for access retrieval flows.
 
-Key generation + storage (recommended):
-- Generate once with `Keypair::generate(&mut rand::rngs::OsRng)`.
-- Store the private key offline or in a locked file on the signing host (e.g., base64-encoded), load on startup.
-- Distribute only the public key to offline verifiers; rotate keys per event if needed.
+Implementation entry point:
+- `crates/api_server/src/main.rs`
+
+Route handlers:
+- `crates/api_server/src/routes/payment.rs`
+- `crates/api_server/src/routes/status.rs`
+- `crates/api_server/src/routes/access.rs`
+
+Background watcher:
+- `crates/api_server/src/services/watcher_service.rs`
 
 ---
 
-## QR Generation (Token Issuer)
+## Stellar Payment Detection
+
+Instead of a Lightning node, HASKE now uses Stellar account monitoring.
+
+Payment request format:
+- Destination account
+- Amount
+- Asset
+- Unique memo
+
+Detection strategy:
+- Generate a unique memo per payment session.
+- Query Horizon for recent payments to the configured destination account.
+- Match on destination, memo, amount, and asset.
+- Only issue an access token after a confirmed matching payment is found.
+
+Current provider implementation:
+- `crates/stellar_adapter/src/provider.rs`
+- `crates/stellar_adapter/src/client.rs`
+- `crates/stellar_adapter/src/parser.rs`
+- `crates/stellar_adapter/src/memo.rs`
+
+Default Horizon endpoint:
+- `https://horizon-testnet.stellar.org`
+
+---
+
+## Access Token Format
+
+The access token is a signed JSON payload. It is designed for offline verification and now anchors proof to Stellar payment data.
+
+Current token fields:
+- `version`
+- `event_id`
+- `tx_hash`
+- `source`
+- `amount`
+- `asset`
+- `memo`
+- `ledger`
+- `expires_at`
+- `nonce`
+
+Compatibility note:
+- The token struct still retains an optional `payment_hash` field so older Lightning-shaped tokens can coexist during migration.
+
+Token signing helpers live in:
+- `crates/access_token/src/sign.rs`
+- `crates/access_token/src/token.rs`
+- `crates/access_token/src/verify.rs`
+
+Example token payload before signing:
+
+```json
+{
+  "version": 1,
+  "event_id": "demo-event",
+  "tx_hash": "3d5c...abc",
+  "source": "GABC...",
+  "amount": "10",
+  "asset": "XLM",
+  "memo": "A9k3Lm2Qx7pR",
+  "ledger": 123456,
+  "expires_at": 1735689750,
+  "nonce": "q8Y2JkP4Ls9Vb0Xr"
+}
+```
+
+Signed token wire format:
+
+```json
+{
+  "token": { "...": "..." },
+  "signature": "<base64>"
+}
+```
+
+---
+
+## QR Generation
 
 Requirements covered:
-- Terminal QR (ASCII) for dev.
-- PNG QR for demos.
-- Deterministic output (same payload -> same QR).
+- Terminal QR for development
+- PNG QR for demos and browser display
+- Deterministic output for the same payload
 
-Implementation lives in `crates/lightning_node/src/qr.rs`.
+Implementation lives in:
+- `crates/qr/src/lib.rs`
+
+Two kinds of QR payloads are used:
+- Stellar wallet payment request QR such as `web+stellar:pay?...`
+- Signed access token QR for offline gate validation
 
 ---
 
-## Offline Verifier CLI (No Network)
+## Offline Verifier CLI
 
 Behavior:
-- Accepts a token string, a token file, or a QR image.
-- Verifies Ed25519 signature.
-- Checks expiry.
-- Prints `VALID` or `INVALID`.
-- No network calls, no databases.
+- Accepts a token string or a QR image
+- Verifies Ed25519 signature
+- Checks expiry
+- Prints `VALID` or `INVALID`
+- Makes no network calls
 
-Public key embedding:
-- The verifier embeds the issuer's Ed25519 public key as a base64 string constant.
-- This keeps verification fully offline; the key can be replaced per event or rotated by rebuilding.
+CLI examples:
+- `verifier --token "<signed_token_json>"`
+- `verifier --qr-image path/to/qr.png`
+- `verifier --public_key path/to/public_key.txt --token "<signed_token_json>"`
 
-CLI usage: `verifier --token "<compact_token>"`, `verifier --token-file path/to/token.txt`, `verifier --qr-image path/to/qr.png`.
-Implementation lives in `crates/verifier_cli/src/main.rs`.
+Implementation lives in:
+- `crates/verifier_cli/src/main.rs`
 
----
-
-## Minimal HTTP API (Demo)
-
-Endpoints:
-- `POST /api/invoice` -> create invoice (returns invoice QR + id)
-- `GET /api/invoice/:invoice_id` -> check payment status (returns access token/QR when settled)
-- `GET /api/invoice/:invoice_id/access` -> retrieve access token (same response as status)
-
-Implementation:
-- `crates/lightning_node/src/layers/access.rs` (axum routes + handlers + in-memory store)
-- `crates/lightning_node/src/layers/proof.rs` (token issuance + payment settlement handling)
-- `crates/lightning_node/src/main.rs` (server wiring + Breez payment listener)
+Note:
+- The CLI currently expects either `--public_key` or a rebuilt binary with an embedded real public key value.
 
 ---
 
-## Demo Mode
+## Configuration
 
-Behavior:
-- Fixed `event_id` (`demo-event`).
-- Short expiry (2 minutes).
-- Logs prefixed with `[demo]` and simplified for live walkthroughs.
+New server environment variables:
 
-Toggle (safe):
-- Set `LIGHTNING_PASS_DEMO=1` or `LIGHTNING_PASS_DEMO=true` to enable demo mode.
-- Omit the env var to run default mode with longer expiry and configurable event id.
-- For live demos, set the env var in the process environment only (not in `.env` checked into source).
-- Keep production configs free of `LIGHTNING_PASS_DEMO` and confirm logs do not show the `[demo]` prefix.
+- `STELLAR_DESTINATION_ADDRESS`
+  Required. Stellar account that receives payments.
+- `STELLAR_HORIZON_URL`
+  Optional. Defaults to `https://horizon-testnet.stellar.org`.
+- `HASKE_SIGNING_KEY_BASE64`
+  Optional but recommended. Base64-encoded 32-byte Ed25519 secret key seed for stable signing.
+- `HASKE_TOKEN_EXPIRY_SECS`
+  Optional. Defaults to `300`.
+- `HASKE_WATCH_INTERVAL_SECS`
+  Optional. Defaults to `3`.
 
----
-
-## Demo Failure Scenarios
-
-Network blip (invoice status delay):
-- User sees: QR stays in "waiting for payment" state.
-- Operator sees: `[demo]` logs show status poll timeouts or missing callbacks.
-- Live recovery: switch to a known-working hotspot, re-open the same invoice page, or generate a fresh invoice.
-
-Wallet delay (payment settles late):
-- User sees: payment sent but no access QR yet.
-- Operator sees: `[demo]` logs show invoice pending, then settled later.
-- Live recovery: narrate the async nature of settlement and refresh the status; show the access QR once it appears.
-
-Expired QR (short demo expiry):
-- User sees: "expired" or "invalid" on the verifier.
-- Operator sees: `[demo]` logs show token expiry check failing.
-- Live recovery: generate a new invoice to mint a fresh token, then re-scan to show success.
+Behavior note:
+- If `HASKE_SIGNING_KEY_BASE64` is not set, the API generates an ephemeral signing key on startup. That is fine for quick demos but invalidates previously issued passes after restart.
 
 ---
 
-## Chain + Gossip Sync Checks
+## Threat Model
 
-Look for logs indicating:
-- Headers synced.
-- Rapid Gossip Sync loaded.
-
-If gossip does not load, payments may fail later.
+- Fake payment claim: issue access only after Horizon confirms a matching payment for destination, memo, amount, and asset.
+- Screenshot reuse: short token expiry limits how long a captured access QR remains usable.
+- Replay attack: nonce and event scoping reduce simple token reuse, though preventing repeat entry without a database remains intentionally out of scope for this demo.
+- Memo collision: unique generated memos keep payment sessions distinct.
+- Fake QR codes: Ed25519 signatures ensure only issuer-signed passes validate offline.
+- Clock drift: verifier devices should allow small time tolerance and stay roughly synced.
 
 ---
 
-## Access Token Specification (Minimal)
+## Demo Narrative
 
-Field list:
-- `payment_hash` (string, hex): Lightning payment hash tied to settlement.
-- `amount_msat` (number): Amount paid in millisatoshis.
-- `expires_at` (number): Unix timestamp in seconds.
-- `nonce` (string): Random 12-16 char nonce to prevent reuse.
-- `event_id` (string): Event or venue identifier (keeps tokens scoped).
+One sentence:
+- This platform turns a confirmed blockchain payment into a time-limited access pass that still verifies offline at the door.
 
-Example payload (before signing): `payment_hash=4c1ff0...1234`, `amount_msat=250000`, `expires_at=1735689750`, `nonce=A9k3Lm2Qx7pR`, `event_id=venue-2025-01-15`.
+One paragraph:
+- A guest opens a checkout screen, pays a Stellar request from their wallet, and receives a signed QR pass moments later. Staff at the venue can scan that pass with no network connection because the verifier only needs the issuer public key and the signed token payload. The result is a smooth pay-to-enter flow that keeps working during poor connectivity.
 
-Encoding format:
-- JSON payload, signed with Ed25519, then packed as a JSON object: `{ token: <payload>, signature: <base64> }`.
+Simple diagram:
+- Phone payment -> signed QR pass -> offline door scanner -> entry
 
-Why this format:
-- JSON is compact enough for QR, easy to debug in a demo, and deterministic for signing/verifying across Rust and CLI tooling.
+---
+
+## Demo Script
+
+Setup context:
+- "This is a pay-to-enter flow where the gate has no internet, but the pass still verifies."
+
+Show payment:
+- "The buyer gets a Stellar payment request with an amount and unique memo."
+- "Once the payment confirms, the system issues an access pass tied to that transaction."
+
+Verify access offline:
+- "Now the gate device scans the signed QR."
+- "It verifies locally, with no Horizon call and no server lookup."
+
+Wrap-up:
+- "So the venue gets reliable entry even during connectivity problems, and the payment still maps cleanly to access."
 
 ---
 
 ## What This Demonstrates
 
-- Instant Lightning payments using Breez SDK
-- Access passes issued only after payment is settled
-- Offline verification using cryptographic signatures
-- A simple "pay -> enter" user experience
+- Blockchain payment-to-access conversion using Stellar
+- Cryptographically signed access passes
+- Offline verification at the point of entry
+- A payment abstraction that can support additional chains later
 
 This repository is built as an **investor demo**, not a full production system.
 
 ---
 
-## Architecture Overview
-Buyer Phone
-|
-| (Lightning payment)
-v
-Lightning Node (Breez SDK)
-|
-| (payment settled)
-v
-Access Token Issuer
-|
-| (signed QR)
-v
-Gate Verifier (offline)
+## Positioning
+
+HASKE is no longer best thought of as a Lightning-only project.
+
+It is better described as:
+
+**A proof-of-payment to access protocol, with Stellar as the current payment rail.**
+
+That opens the path to:
+- XLM
+- USDC on Stellar
+- Future Lightning reintroduction through the same payment abstraction
+- Other chains through additional adapters
 
 ---
 
-## Investor Narrative
+## Current Limitations
 
-One sentence:
-- This platform turns a payment into a time-limited entry pass that can be checked at the door with no internet.
-
-One paragraph:
-- A guest pays on their phone and receives a QR pass within seconds. The venue staff scan that pass at the gate, and the scanner verifies it locally without needing a network connection. That means lines keep moving even if Wi-Fi is down, while the business still gets a clean record of who paid and who entered.
-
-Simple diagram (ASCII):
-Phone payment -> QR pass -> Door scanner (offline check) -> Entry
+- Session state is in-memory and does not survive restarts.
+- The verifier does not yet ship with a real embedded public key by default.
+- The old Lightning crate is still present in the repo during migration.
+- The frontend checkout pages still need to be updated to call the new Stellar endpoints.
 
 ---
 
-## Demo Script (3 Minutes)
+## License
 
-Setup context (say):
-- "This is a pay-to-enter flow where the gate has no internet, but the pass still verifies."
-
-Show payment (say):
-- "I tap pay on my phone, and within a few seconds I get a QR pass."
-- "That pass is short-lived and tied to this event only."
-
-Turn off internet at the gate (say):
-- "Now I'm turning off the gate's internet to simulate a real outage."
-
-Verify access offline (say):
-- "I'm scanning the QR on the gate device."
-- "Notice it verifies instantly, even offline, and grants entry."
-
-Wrap-up (say):
-- "So the business gets reliable entry, the guest gets a smooth experience, and the venue isn't blocked by network issues."
-
-
-Lightning Proof-of-Payment Access System
-
-A cryptographic proof-of-payment backend built on the Bitcoin Lightning Network, optimized for unreliable networks and fast physical or digital access.
-
-This system converts a successful Lightning payment into a verifiable, replay-safe access credential that can be validated instantly — even offline.
-
-Core Idea
-
-A Lightning payment is not the end — it is the proof.
-
-This project provides the missing layer between:
-
-“A payment was made”
-and
-
-“Access is granted.”
-
-It transforms Lightning settlement events into cryptographic artifacts suitable for:
-
-Event ticketing
-
-Physical gates and doors
-
-API access
-
-Low-connectivity environments
-
-What This Project Is (and Is Not)
-✅ This project is
-
-A proof-of-payment system
-
-An access control backend
-
-A Lightning-native verification layer
-
-Optimized for speed and offline validation
-
-❌ This project is not
-
-A Lightning wallet
-
-A faucet or liquidity provider
-
-A routing or payment processor
-
-A custodial fund manager
-
-System Architecture
-Layered Design
-┌────────────────────────────────────┐
-│  Access Layer                      │
-│  (Gate, Ticket, API, Verifier)     │
-└──────────────▲─────────────────────┘
-               │ cryptographic proof
-┌──────────────┴─────────────────────┐
-│  Proof Layer (THIS PROJECT)        │
-│                                   │
-│  • Invoice issuance               │
-│  • Payment verification           │
-│  • Preimage extraction            │
-│  • Proof generation               │
-│  • Replay protection              │
-└──────────────▲─────────────────────┘
-               │ Lightning events
-┌──────────────┴─────────────────────┐
-│  Lightning Layer                   │
-│  (LDK Node)                        │
-│                                   │
-│  • Payment routing                │
-│  • HTLC settlement                │
-└──────────────▲─────────────────────┘
-               │ funding
-┌──────────────┴─────────────────────┐
-│  Funding Layer                     │
-│  (Testnet Faucets / Wallets)       │
-└────────────────────────────────────┘
-
-Backend Components
-Daemon (Rust)
-
-Runs an LDK Lightning node
-
-Creates BOLT11 invoices
-
-Listens for payment events
-
-Emits PaymentClaimed events
-
-HTTP API (Axum)
-
-Exposes a simple REST interface:
-
-Endpoint	Description
-POST /api/invoice	Create a Lightning invoice
-GET /api/invoice/{id}	Check invoice payment status
-GET /api/invoice/{id}/access	Retrieve access proof
-State Management
-
-Tracks:
-
-Invoice ID
-
-Payment hash
-
-Payment preimage
-
-Claim status
-
-Expiration timestamps
-
-Storage can be in-memory or a lightweight database.
-
-Payment → Access Flow
-
-Client requests an invoice
-
-Backend generates a BOLT11 invoice
-
-Client pays using any Lightning wallet
-
-LDK emits a PaymentClaimed event
-
-Backend extracts the payment preimage
-
-A cryptographic access proof is derived
-
-Proof is returned as a token or QR
-
-Access verifier validates proof and grants access
-
-Security Model
-
-Proof source: Lightning payment preimage
-
-Forge resistance: Cryptographically infeasible
-
-Replay protection: One-time or time-bounded proofs
-
-Trust assumptions: No trusted server required at access point
-
-Offline & Low-Connectivity Support
-
-This system is designed for environments with:
-
-Poor internet
-
-Intermittent connectivity
-
-High throughput access points
-
-Mechanisms include:
-
-Preimage-based proofs
-
-Signed tokens or hash commitments
-
-Local verification rules at the access layer
-
-Testnet Development Strategy
-
-Used for development, testing, and demos.
-
-Funding
-
-Bitcoin Testnet faucets
-
-Compatible Testnet Wallets
-
-Phoenix (Testnet)
-
-Mutiny (Testnet)
-
-Alby (Testnet)
-
-Success Criteria
-Technical
-
-A Lightning payment deterministically produces a verifiable proof
-
-Product
-
-Access is granted instantly without waiting for confirmations
-
-Architectural
-
-Clean separation between:
-
-Payment
-
-Proof
-
-Access
-
-Positioning Summary
-
-This project sits between Lightning payments and real-world access.
-
-It is best described as:
-
-A Lightning-native proof-of-payment and access control layer.
-
-License
-
-MIT (or specify)
+MIT

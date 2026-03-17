@@ -1,0 +1,10 @@
+[package]
+name = "qr"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+base64 = { workspace = true }
+image = { workspace = true }
+qrcode = { workspace = true, features = ["image"] }
