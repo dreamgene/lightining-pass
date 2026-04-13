@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-[#0B0F14] text-white;
+  margin: 0;
+  min-width: 320px;
+}
+
+#root {
+  min-height: 100vh;
+  overflow-x: hidden;
+}

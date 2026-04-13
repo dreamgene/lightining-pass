@@ -3,35 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>HASKE · Pay & Access</title>
+    <title>HASKE Checkout</title>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@500;700&display=swap");
-
       :root {
-        --bg: #f8fafc;
-        --bg-2: #ffffff;
-        --ink: #0c1326;
-        --muted: #5a6475;
-        --accent: #ff6b2c;
-        --accent-2: #1f7cff;
-        --accent-3: #23d1b8;
-        --panel: rgba(255, 255, 255, 0.95);
-        --panel-strong: #ffffff;
-        --stroke: rgba(12, 19, 38, 0.1);
-        --shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
-        --radius: 18px;
-      }
-
-      [data-theme="dark"] {
-        --bg: #0b0f1c;
-        --bg-2: #0f1426;
-        --ink: #f3f5ff;
-        --muted: #9aa3bf;
-        --panel: rgba(20, 24, 40, 0.9);
-        --panel-strong: rgba(20, 24, 40, 0.98);
-        --stroke: rgba(148, 162, 206, 0.18);
-        --shadow: 0 30px 60px rgba(3, 6, 20, 0.6);
-        --grid: rgba(135, 150, 200, 0.12);
+        --bg: #0b0f14;
+        --card: #121821;
+        --card-2: #0f151d;
+        --text: #f4f7fb;
+        --muted: #95a2b3;
+        --accent: #00d1ff;
+        --success: #00ff9c;
+        --warning: #ffc857;
+        --error: #ff4d4d;
+        --stroke: rgba(255, 255, 255, 0.08);
+        --radius: 16px;
+        --shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
       }
 
       * {
@@ -41,1678 +27,989 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "Manrope", "Segoe UI", sans-serif;
-        color: var(--ink);
-        background: linear-gradient(180deg, var(--bg) 0%, #eef2f7 160px, var(--bg-2) 160px);
+        background:
+          radial-gradient(circle at top, rgba(0, 209, 255, 0.14), transparent 35%),
+          linear-gradient(180deg, #0b0f14 0%, #080b10 100%);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
-      main {
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 44px 44px;
+        pointer-events: none;
+      }
+
+      .app {
         position: relative;
         z-index: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 72px;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 28px clamp(20px, 5vw, 64px) 90px;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
       }
 
-      header {
+      .shell {
+        width: min(100%, 460px);
+        display: grid;
+        gap: 16px;
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(18, 24, 33, 0.98), rgba(12, 17, 24, 0.98));
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 20px;
+      }
+
+      .header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 24px;
-        padding: 12px 0;
+        gap: 12px;
       }
 
       .logo {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        gap: 12px;
-        font-weight: 700;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        font-size: 0.9rem;
+        gap: 10px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
       }
 
-      .logo .logo-mark {
-        width: 34px;
-        height: 34px;
-        border-radius: 14px 6px 14px 6px;
-        background: conic-gradient(from 210deg, var(--accent), var(--accent-3), var(--accent-2));
+      .logo-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
         display: grid;
         place-items: center;
-        box-shadow: var(--shadow);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .logo .logo-mark::before {
-        content: "HS";
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 0.75rem;
-        letter-spacing: 0.08em;
-      }
-
-      .logo .logo-mark::after {
-        content: "";
-        position: absolute;
-        inset: 6px;
-        border-radius: 10px 4px 10px 4px;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 60%);
-      }
-
-      nav {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        font-size: 0.95rem;
-        color: var(--muted);
-      }
-
-      nav a {
-        color: inherit;
-        text-decoration: none;
-        padding: 8px 10px;
-        border-radius: 12px;
-        transition: background 0.15s ease, color 0.15s ease;
-      }
-
-      nav a:hover {
-        color: var(--ink);
-        background: rgba(12, 19, 38, 0.06);
-      }
-
-      .pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 14px;
-        border-radius: 999px;
-        background: rgba(255, 107, 44, 0.12);
+        background: linear-gradient(135deg, rgba(0, 209, 255, 0.18), rgba(0, 209, 255, 0.34));
+        border: 1px solid rgba(0, 209, 255, 0.28);
         color: var(--accent);
-        font-size: 0.8rem;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-      }
-
-      .hero {
-        position: relative;
-        border-radius: 28px;
-        overflow: hidden;
-        min-height: 440px;
-        display: grid;
-        align-items: center;
-        padding: clamp(28px, 5vw, 48px);
-        background: #0c0f1f;
-        color: #fff;
-        margin-top: 12px;
-      }
-
-      .hero::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at 25% 30%, rgba(255, 107, 44, 0.22), transparent 30%),
-          radial-gradient(circle at 80% 20%, rgba(31, 124, 255, 0.18), transparent 30%),
-          linear-gradient(140deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.45)),
-          url("https://images.unsplash.com/photo-1521336575822-6da63fb45455?auto=format&fit=crop&w=1800&q=80")
-            center/cover no-repeat;
-        z-index: 0;
-      }
-
-      .hero-content {
-        position: relative;
-        z-index: 1;
-        max-width: 720px;
-        display: grid;
-        gap: 16px;
-      }
-
-      .events {
-        background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-radius: 24px;
-        padding: 24px;
-        box-shadow: var(--shadow);
-        display: grid;
-        gap: 18px;
-      }
-
-      .events-head {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .search-box {
-        flex: 1;
-        min-width: 240px;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        background: #ffffff;
-        border: 1px solid var(--stroke);
-        border-radius: 16px;
-        padding: 10px 14px;
-      }
-
-      .search-box input {
-        flex: 1;
-        border: none;
-        outline: none;
-        font-size: 1rem;
-        background: transparent;
-      }
-
-      .filter-row {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        align-items: center;
-      }
-
-      .pill-filter {
-        border: 1px solid var(--stroke);
-        background: var(--panel-strong);
-        border-radius: 12px;
-        padding: 8px 12px;
-        font-size: 0.9rem;
-        color: var(--muted);
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .pill-filter select,
-      .pill-filter input {
-        border: none;
-        outline: none;
-        background: transparent;
-        font-size: 0.9rem;
-        color: var(--ink);
-      }
-
-      .booking-layout {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 18px;
-      }
-
-      .event-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 16px;
-      }
-
-      .event-card {
-        border: 1px solid var(--stroke);
-        border-radius: 18px;
-        background: var(--panel-strong);
-        display: grid;
-        gap: 10px;
-        position: relative;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        overflow: hidden;
-      }
-
-      .event-media {
-        position: relative;
-        height: 160px;
-        background: linear-gradient(135deg, rgba(255, 107, 44, 0.25), rgba(31, 124, 255, 0.25));
-      }
-
-      .event-media img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-
-      .event-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 30px rgba(33, 52, 120, 0.18);
-      }
-
-      .event-card h4 {
-        margin: 0;
-        font-size: 1.15rem;
-      }
-
-      .meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        color: var(--muted);
-        font-size: 0.9rem;
       }
 
       .badge {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        border-radius: 10px;
-        padding: 6px 10px;
-        background: rgba(63, 91, 255, 0.12);
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(0, 209, 255, 0.1);
+        border: 1px solid rgba(0, 209, 255, 0.24);
         color: var(--accent);
-        font-weight: 600;
-        font-size: 0.85rem;
-      }
-
-      .status-chip {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        padding: 6px 10px;
-        border-radius: 10px;
-        font-size: 0.8rem;
-        background: rgba(35, 209, 184, 0.16);
-        color: var(--accent-3);
-        border: 1px solid var(--stroke);
-      }
-
-      .booking-panel {
-        border: 1px solid var(--stroke);
-        border-radius: 18px;
-        background: var(--panel-strong);
-        padding: 18px;
-        box-shadow: var(--shadow);
-        display: grid;
-        gap: 12px;
-        align-self: start;
-      }
-
-      .booking-panel h4 {
-        margin: 0;
-      }
-
-      .booking-panel label {
-        display: grid;
-        gap: 6px;
-        font-weight: 600;
-      }
-
-      .booking-panel input,
-      .booking-panel select,
-      .booking-panel textarea {
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid var(--stroke);
-        font-size: 0.95rem;
-        font-family: inherit;
-      }
-
-      .booking-panel textarea {
-        min-height: 72px;
-        resize: vertical;
-      }
-
-      .booking-summary {
-        background: rgba(63, 91, 255, 0.06);
-        border: 1px dashed var(--stroke);
-        border-radius: 12px;
-        padding: 10px 12px;
-        font-size: 0.95rem;
-        color: var(--muted);
-      }
-
-      .empty {
-        padding: 18px;
-        border: 1px dashed var(--stroke);
-        border-radius: 16px;
-        text-align: center;
-        color: var(--muted);
-      }
-
-      .section-heading {
-        text-align: center;
-        display: grid;
-        gap: 8px;
-        margin-bottom: 18px;
-      }
-
-      .section-heading h2 {
-        margin: 0;
-        font-size: 1.8rem;
-        letter-spacing: -0.01em;
-      }
-
-      .section-heading p {
-        margin: 0;
-        color: var(--muted);
-      }
-
-      .category-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 12px;
-      }
-
-      .category-card {
-        background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-radius: 16px;
-        padding: 16px;
-        text-align: center;
-        color: var(--muted);
-        font-weight: 600;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-      }
-
-      .popular-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 14px;
-      }
-
-      .city-card {
-        position: relative;
-        border-radius: 18px;
-        overflow: hidden;
-        height: 180px;
-        color: #fff;
-        display: grid;
-        place-items: end start;
-        padding: 18px;
+        font-size: 0.78rem;
         font-weight: 700;
-        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
       }
 
-      .city-card::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.48));
-      }
-
-      .city-card span {
-        position: relative;
-        z-index: 1;
-        background: rgba(0, 0, 0, 0.35);
-        padding: 6px 10px;
-        border-radius: 10px;
-      }
-
-      .cta-band {
-        background: linear-gradient(120deg, #ff6b2c, #ff466d);
-        color: #fff;
-        border-radius: 18px;
-        padding: 28px;
-        text-align: center;
-        box-shadow: var(--shadow);
-      }
-
-      .dev-steps {
-        background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-radius: 20px;
-        padding: 22px;
-        box-shadow: var(--shadow);
-        display: grid;
-        gap: 14px;
-      }
-
-      .dev-steps h3 {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .dev-steps ol {
-        margin: 0;
-        padding-left: 20px;
-        color: var(--muted);
-        line-height: 1.6;
-      }
-
-      .dev-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .dev-badge {
-        padding: 8px 10px;
-        border-radius: 10px;
-        background: rgba(31, 124, 255, 0.1);
-        color: var(--ink);
-        font-weight: 600;
-        border: 1px solid var(--stroke);
-        font-size: 0.9rem;
-      }
-
-      .hero h1 {
-        font-family: "Playfair Display", serif;
-        font-size: clamp(2.8rem, 5vw, 3.8rem);
-        margin: 8px 0 8px;
-        letter-spacing: -0.02em;
-        color: #ffffff;
-      }
-
-      .hero p {
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 1.08rem;
-        line-height: 1.65;
-        max-width: 560px;
-        margin: 0;
-      }
-
-      .hero-content {
-        position: relative;
-        z-index: 1;
-        max-width: 760px;
-        display: grid;
-        gap: 18px;
-      }
-
-      .search-bar {
-        background: rgba(255, 255, 255, 0.96);
-        color: var(--ink);
-        border-radius: 999px;
-        display: grid;
-        grid-template-columns: 2fr repeat(3, minmax(140px, 1fr)) auto;
-        gap: 10px;
-        padding: 10px;
-        align-items: center;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-      }
-
-      .search-input,
-      .search-select {
-        background: #fff;
-        border: 1px solid var(--stroke);
-        border-radius: 999px;
-        padding: 12px 16px;
-        font-size: 0.95rem;
-        width: 100%;
-      }
-
-      .search-select {
-        appearance: none;
-        background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-          linear-gradient(-45deg, transparent 50%, var(--muted) 50%);
-        background-position: calc(100% - 16px) 50%, calc(100% - 10px) 50%;
-        background-size: 8px 8px;
-        background-repeat: no-repeat;
-      }
-
-      .cta-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-top: 12px;
-      }
-
-      .button {
-        border: none;
-        padding: 12px 24px;
-        border-radius: 999px;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-
-      .button.primary {
-        background: linear-gradient(135deg, var(--accent), var(--accent-3));
-        color: #ffffff;
-        box-shadow: var(--shadow);
-      }
-
-      .button.secondary {
-        background: transparent;
-        color: var(--ink);
-        border: 1px solid var(--stroke);
-      }
-
-      .toggle {
-        border: 1px solid var(--stroke);
-        background: var(--panel);
-        color: var(--muted);
-        padding: 8px 14px;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        cursor: pointer;
-      }
-
-      .button:hover {
-        transform: translateY(-2px);
-      }
-
-      .hero-card {
-        background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-radius: 22px;
-        padding: 24px;
+      .stack {
         display: grid;
         gap: 16px;
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(8px);
       }
 
-      .hero-card h3 {
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .event-title {
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 2rem;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        font-weight: 800;
       }
 
-      .countdown {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+      .price-line {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
         gap: 12px;
-        margin-top: 12px;
-      }
-
-      .countdown .block {
-        background: var(--panel-strong);
-        border: 1px solid var(--stroke);
-        border-radius: 16px;
-        padding: 14px 10px;
-        text-align: center;
-      }
-
-      .countdown .value {
-        font-size: 1.4rem;
-        font-weight: 600;
-      }
-
-      .countdown .label {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.2em;
-        color: var(--muted);
-      }
-
-      .section-title {
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.2em;
-        color: var(--muted);
-      }
-
-      .cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 18px;
-      }
-
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-radius: 20px;
-        padding: 20px;
-        display: grid;
-        gap: 10px;
-        box-shadow: var(--shadow);
-      }
-
-      .card strong {
-        font-size: 1.1rem;
-      }
-
-      .card p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.95rem;
-        line-height: 1.5;
-      }
-
-      .stripe {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 14px;
-        align-items: center;
-      }
-
-      .logo-tag {
-        border-radius: 999px;
-        padding: 8px 16px;
-        border: 1px solid var(--stroke);
-        background: rgba(255, 255, 255, 0.7);
-        color: var(--muted);
-        text-align: center;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
-      }
-
-      .pricing {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 18px;
-      }
-
-      .price-card {
-        background: var(--panel-strong);
-        border: 1px solid var(--stroke);
-        border-radius: 24px;
-        padding: 24px;
-        display: grid;
-        gap: 12px;
-        box-shadow: var(--shadow);
-      }
-
-      .price-card h4 {
-        margin: 0;
-        font-size: 1.2rem;
+        flex-wrap: wrap;
       }
 
       .price {
-        font-size: 2rem;
-        font-weight: 700;
+        font-size: 2.5rem;
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+        font-weight: 900;
       }
 
-      .price span {
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: var(--muted);
-      }
-
-      .testimonial {
-        background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-radius: 20px;
-        padding: 20px;
-        display: grid;
-        gap: 10px;
-        box-shadow: var(--shadow);
-      }
-
-      .testimonial p {
-        margin: 0;
+      .price-alt {
         color: var(--muted);
         font-size: 0.95rem;
-        line-height: 1.6;
-      }
-
-      .faq {
-        display: grid;
-        gap: 12px;
-      }
-
-      .docs {
-        display: grid;
-        grid-template-columns: minmax(200px, 260px) 1fr;
-        gap: 24px;
-        align-items: start;
-      }
-
-      .docs-sidebar {
-        position: sticky;
-        top: 24px;
-        align-self: start;
-        background: var(--panel);
-        border: 1px solid var(--stroke);
-        border-radius: 18px;
-        padding: 16px;
-        display: grid;
-        gap: 12px;
-        box-shadow: var(--shadow);
-      }
-
-      .docs-search {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: #ffffff;
-        border: 1px solid var(--stroke);
-        border-radius: 999px;
-        padding: 6px 12px;
-        font-size: 0.85rem;
-        color: var(--muted);
-      }
-
-      .docs-nav {
-        display: grid;
-        gap: 10px;
-        font-size: 0.9rem;
-      }
-
-      .docs-nav strong {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.2em;
-        color: var(--muted);
-      }
-
-      .docs-nav a {
-        color: var(--ink);
-        text-decoration: none;
-        padding: 6px 8px;
-        border-radius: 10px;
-      }
-
-      .docs-nav a.active {
-        background: rgba(63, 91, 255, 0.12);
-        color: var(--accent);
         font-weight: 600;
       }
 
-      .docs-main {
-        background: var(--panel-strong);
+      .timer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.03);
         border: 1px solid var(--stroke);
-        border-radius: 22px;
-        padding: 28px;
-        display: grid;
-        gap: 22px;
-        box-shadow: var(--shadow);
       }
 
-      .docs-main h3 {
-        margin: 0;
-        font-size: 1.6rem;
-      }
-
-      .docs-main p {
-        margin: 0;
+      .timer-label {
         color: var(--muted);
-        line-height: 1.6;
+        font-size: 0.88rem;
+        font-weight: 600;
       }
 
-      .docs-list {
+      .timer-value {
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+
+      .timer.is-danger .timer-value,
+      .timer.is-danger .timer-label {
+        color: var(--error);
+      }
+
+      .qr-stage {
+        display: grid;
+        gap: 14px;
+      }
+
+      .qr-block {
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #ffffff 0%, #eef4fa 100%);
+        min-height: 320px;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        transition: opacity 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+      }
+
+      .qr-block.is-dimmed {
+        opacity: 0.42;
+        transform: scale(0.985);
+      }
+
+      .qr-placeholder,
+      .qr-image-wrap {
+        display: grid;
+        gap: 12px;
+        justify-items: center;
+        text-align: center;
+        width: 100%;
+      }
+
+      .qr-image {
+        width: min(100%, 280px);
+        aspect-ratio: 1;
+        object-fit: contain;
+        display: block;
+      }
+
+      .qr-image-wrap.is-pass .qr-image {
+        width: min(100%, 320px);
+      }
+
+      .qr-label {
+        color: #12202f;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .qr-sub {
+        color: #51606f;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .wallet-row {
         display: grid;
         gap: 10px;
-        padding-left: 18px;
-        margin: 0;
+      }
+
+      .wallet-support {
         color: var(--muted);
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      .button-row {
+        display: grid;
+        gap: 10px;
+      }
+
+      .button {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 15px 18px;
+        font-size: 0.98rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: transform 150ms ease, opacity 150ms ease, background 150ms ease;
+      }
+
+      .button:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      .button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      .button.primary {
+        background: linear-gradient(135deg, #00d1ff, #0aa7ff);
+        color: #041019;
+      }
+
+      .button.secondary {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--stroke);
+        color: var(--text);
+      }
+
+      .status-bar {
+        display: grid;
+        gap: 8px;
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid var(--stroke);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+      }
+
+      .status-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .status-main {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1rem;
+        font-weight: 800;
+      }
+
+      .status-main::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--warning);
+        box-shadow: 0 0 0 6px rgba(255, 200, 87, 0.1);
+      }
+
+      .status-bar.is-detected .status-main::before {
+        background: var(--accent);
+        box-shadow: 0 0 0 6px rgba(0, 209, 255, 0.1);
+      }
+
+      .status-bar.is-confirmed .status-main::before {
+        background: var(--success);
+        box-shadow: 0 0 0 6px rgba(0, 255, 156, 0.12);
+      }
+
+      .status-bar.is-expired .status-main::before,
+      .status-bar.is-error .status-main::before {
+        background: var(--error);
+        box-shadow: 0 0 0 6px rgba(255, 77, 77, 0.12);
+      }
+
+      .status-note {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.4;
+      }
+
+      .status-meta {
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .loader {
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        border: 2px solid rgba(0, 209, 255, 0.22);
+        border-top-color: var(--accent);
+        animation: spin 900ms linear infinite;
+      }
+
+      .pass-meta {
+        display: grid;
+        gap: 12px;
       }
 
       details {
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.03);
         border: 1px solid var(--stroke);
-        border-radius: 16px;
-        padding: 14px 18px;
-        background: var(--panel);
+        padding: 14px 16px;
       }
 
       summary {
         cursor: pointer;
-        font-weight: 600;
+        font-weight: 700;
+        list-style: none;
       }
 
-      .demo {
+      summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .detail-grid {
+        margin-top: 12px;
         display: grid;
-        gap: 12px;
+        gap: 10px;
       }
 
-      .demo-output {
-        padding: 14px;
-        border-radius: 16px;
-        border: 1px dashed var(--stroke);
-        background: rgba(255, 255, 255, 0.7);
-        font-family: "SFMono-Regular", "Courier New", monospace;
-        font-size: 0.85rem;
-        color: #1c223a;
-        white-space: pre-wrap;
-      }
-
-      .footer {
+      .detail-item {
         display: grid;
-        gap: 12px;
+        gap: 4px;
+      }
+
+      .detail-item span {
         color: var(--muted);
-        font-size: 0.9rem;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
       }
 
-      @media (max-width: 720px) {
-        header {
-          flex-direction: column;
-          align-items: flex-start;
+      .detail-item code {
+        color: var(--text);
+        font-size: 0.86rem;
+        word-break: break-all;
+      }
+
+      .inline-action {
+        color: var(--accent);
+        font-size: 0.84rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .snapshot {
+        color: var(--muted);
+        font-size: 0.82rem;
+        white-space: pre-wrap;
+        line-height: 1.45;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .app {
+          padding: 12px;
         }
 
-        nav {
-          flex-wrap: wrap;
+        .panel {
+          padding: 18px;
         }
 
-        .countdown {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+        .event-title {
+          font-size: 1.72rem;
         }
 
-        .docs {
-          grid-template-columns: 1fr;
+        .price {
+          font-size: 2.2rem;
         }
 
-        .docs-sidebar {
-          position: static;
-        }
-
-        .booking-layout {
-          grid-template-columns: 1fr;
-        }
-
-        .events-head {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .search-bar {
-          grid-template-columns: 1fr;
-          border-radius: 16px;
-        }
-
-        .search-input,
-        .search-select {
-          border-radius: 12px;
+        .qr-block {
+          min-height: 280px;
+          padding: 18px;
         }
       }
     </style>
   </head>
   <body>
-    <main>
-      <header>
-        <div class="logo"><span class="logo-mark" aria-hidden="true"></span> HASKE</div>
-        <nav>
-          <a href="#about">Find events</a>
-          <a href="#categories">Categories</a>
-          <a href="#events">Upcoming</a>
-          <a href="#cities">Cities</a>
-          <a href="#faq">FAQ</a>
-          <button class="button secondary" data-route="#demo">Payment demo</button>
-          <button class="toggle" id="themeToggle">Light mode</button>
-        </nav>
-      </header>
-
-      <section class="hero" id="about">
-        <div class="hero-content">
-          <div class="pill">Think different</div>
-          <h1>HASKE ⚡🎟️</h1>
-          <p>
-            Payment-settled access that works offline. HASkE Pass turns a Lightning payment into a
-            cryptographically verifiable access pass (QR) that can be checked without internet.
-          </p>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;color:rgba(255,255,255,0.85);font-weight:600;">
-            <span style="padding:8px 12px;border-radius:12px;background:rgba(255,255,255,0.08);">No user accounts</span>
-            <span style="padding:8px 12px;border-radius:12px;background:rgba(255,255,255,0.08);">No ticket databases</span>
-            <span style="padding:8px 12px;border-radius:12px;background:rgba(255,255,255,0.08);">No online gate servers</span>
+    <main class="app">
+      <section class="shell">
+        <div class="panel header">
+          <div class="logo">
+            <div class="logo-mark">HS</div>
+            <div>HASKE <span style="color: var(--accent);">⚡</span></div>
           </div>
-
-          <div class="search-bar">
-            <input id="eventSearch" class="search-input" type="text" placeholder="Search for an event, artist, or venue" aria-label="Search events" />
-            <select id="cityFilter" class="search-select" aria-label="Filter by city">
-              <option value="">Any city</option>
-            </select>
-            <select id="monthFilter" class="search-select" aria-label="Filter by month">
-              <option value="">Any month</option>
-            </select>
-            <input id="priceFilter" class="search-input" type="number" min="0" placeholder="Max price" aria-label="Maximum ticket price" />
-            <button class="button primary" id="searchTrigger" style="padding:12px 22px;">Search</button>
-          </div>
-
-          <div class="filter-row" style="color:#fff;margin-top:6px;">
-            <label style="display:flex;gap:8px;align-items:center;font-weight:600;">
-              <input id="onlyAvailable" type="checkbox" /> Only available seats
-            </label>
-            <button class="button secondary" id="resetFilters" style="padding:8px 14px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.45);">
-              Reset
-            </button>
-          </div>
-
-          <div class="countdown" id="countdown">
-            <div class="block">
-              <div class="value" id="days">08</div>
-              <div class="label">Days</div>
-            </div>
-            <div class="block">
-              <div class="value" id="hours">12</div>
-              <div class="label">Hours</div>
-            </div>
-            <div class="block">
-              <div class="value" id="mins">04</div>
-              <div class="label">Min</div>
-            </div>
-            <div class="block">
-              <div class="value" id="secs">22</div>
-              <div class="label">Sec</div>
-            </div>
-          </div>
+          <div class="badge">Secure Payment</div>
         </div>
-      </section>
 
-      <section id="categories">
-        <div class="section-heading">
-          <h2>Browse categories</h2>
-          <p>Pick a vibe to jump in faster.</p>
-        </div>
-        <div class="category-grid">
-          <div class="category-card">🎸 Arts & Entertainment</div>
-          <div class="category-card">🤝 Business & Networking</div>
-          <div class="category-card">🏋️ Health & Wellness</div>
-          <div class="category-card">🍸 Nightlife & Experiences</div>
-          <div class="category-card">🥾 Outdoor & Recreation</div>
-          <div class="category-card">💡 Workshops & Learning</div>
-        </div>
-      </section>
-
-      <section id="events" class="events">
-        <div class="events-head">
+        <div class="panel stack">
           <div>
-            <h3 style="margin:0;">Upcoming picks</h3>
-            <p style="margin:6px 0 0;color:var(--muted);">Curated events that accept Lightning and issue offline passes.</p>
+            <p class="eyebrow">Checkout</p>
+            <h1 class="event-title">HASKE Demo Event</h1>
           </div>
-          <div class="pill-filter">
-            <span>Showing</span>
-            <select id="cityFilterInline" aria-label="Filter by city (mirror)" style="border:none;outline:none;background:transparent;font-size:0.9rem;">
-              <option value="">Any city</option>
-            </select>
-          </div>
-        </div>
 
-        <div class="booking-layout">
-          <div>
-            <div class="event-grid" id="eventGrid"></div>
-            <div class="empty" id="noResults" style="display:none;">No events match those filters. Try broadening your search.</div>
+          <div class="price-line">
+            <div class="price">&#8358;10,000</div>
+            <div class="price-alt">or 10 XLM</div>
           </div>
-          <div class="booking-panel">
-            <div>
-              <div class="section-title" style="margin:0;">Selected event</div>
-              <h4 id="selectedTitle">No event selected yet</h4>
-              <div class="booking-summary" id="selectedMeta">Pick an event on the left to see details.</div>
+
+          <div class="timer" id="countdownCard">
+            <div class="timer-label" id="countdownLabel">Session expires in</div>
+            <div class="timer-value" id="countdownValue">05:00</div>
+          </div>
+
+          <div class="qr-stage">
+            <div class="qr-block" id="qrBlock">
+              <div class="qr-placeholder" id="qrPlaceholder">
+                <div style="width: 220px; height: 220px; border-radius: 20px; background: linear-gradient(135deg, rgba(18, 24, 33, 0.04), rgba(18, 24, 33, 0.1)); display: grid; place-items: center; color: #51606f; font-weight: 800;">
+                  Preparing QR
+                </div>
+                <div class="qr-label">Scan with any Stellar wallet</div>
+              </div>
+              <div class="qr-image-wrap hidden" id="paymentQrWrap">
+                <img class="qr-image" id="paymentQrImage" alt="Payment QR" />
+                <div class="qr-label">Scan with any Stellar wallet</div>
+                <div class="qr-sub">Supports XLM / USDC</div>
+              </div>
+              <div class="qr-image-wrap hidden" id="accessQrWrap">
+                <img class="qr-image" id="accessQrImage" alt="Access pass QR" />
+                <div class="qr-label">Ready for Entry</div>
+                <div class="qr-sub">Works offline after issuance</div>
+              </div>
             </div>
-            <form id="bookingForm">
-              <label>
-                Full name
-                <input type="text" id="bookName" name="name" required />
-              </label>
-              <label>
-                Email for confirmation
-                <input type="email" id="bookEmail" name="email" required />
-              </label>
-              <label>
-                Seats
-                <select id="bookSeats" name="seats">
-                  <option value="1">1 seat</option>
-                  <option value="2">2 seats</option>
-                  <option value="3">3 seats</option>
-                  <option value="4">4 seats</option>
-                  <option value="5">5 seats</option>
-                </select>
-              </label>
-              <label>
-                Notes (optional)
-                <textarea id="bookNotes" name="notes" placeholder="Access needs, arrival window, etc."></textarea>
-              </label>
-              <div class="booking-summary" id="bookingSummary">Total: —</div>
-              <button class="button primary" type="submit">Book this event</button>
-              <div id="bookingStatus" style="color:var(--accent);font-weight:600;"></div>
-            </form>
-          </div>
-        </div>
-      </section>
 
-      <section id="cities">
-        <div class="section-heading">
-          <h2>Popular cities</h2>
-          <p>Browse listings in vibrant places.</p>
-        </div>
-        <div class="popular-grid">
-          <div class="city-card" style="background:url('https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1400&q=80') center/cover no-repeat;"><span>Austin</span></div>
-          <div class="city-card" style="background:url('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1400&q=80') center/cover no-repeat;"><span>New York</span></div>
-          <div class="city-card" style="background:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80') center/cover no-repeat;"><span>San Francisco</span></div>
-          <div class="city-card" style="background:url('https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1400&q=80') center/cover no-repeat;"><span>Chicago</span></div>
-        </div>
-      </section>
-
-      <section id="dev-mode" class="dev-steps">
-        <h3>✅ PATH A: Pay the invoice with your own LDK node</h3>
-        <p style="margin:0;color:var(--muted);">
-          Cleanest backend flow — your node self-pays, triggers <code>PaymentClaimed</code>, and issues the offline pass. No mobile wallet needed.
-        </p>
-        <div class="dev-badges">
-          <span class="dev-badge">ldk-node</span>
-          <span class="dev-badge">Self-pay</span>
-          <span class="dev-badge">PaymentClaimed fires</span>
-          <span class="dev-badge">Backend demos</span>
-        </div>
-        <strong>Steps (high-level)</strong>
-        <ol>
-          <li>Fund your LDK node with testnet BTC (or regtest funds).</li>
-          <li>Open a Lightning channel.</li>
-          <li>Pay the invoice programmatically (self-pay flag).</li>
-          <li>Watch <code>PaymentClaimed</code> fire and the pass get issued.</li>
-        </ol>
-        <p style="margin:0;color:var(--muted);">This is how Lightning devs actually test systems.</p>
-      </section>
-
-      <section>
-        <div class="cta-band">
-          <h3 style="margin:0 0 6px;">Browse events and pay in seconds.</h3>
-          <p style="margin:0 0 12px;">No accounts, no PDF tickets — just Lightning-powered passes that verify offline.</p>
-          <div class="cta-row" style="justify-content:center;">
-            <button class="button primary" data-route="#events">Find events</button>
-            <button class="button secondary" data-route="#demo" style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.35);">
-              See payment demo
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section id="features">
-        <div class="section-title">Why it works</div>
-        <div class="cards">
-          <div class="card">
-            <strong>Instant settlement</strong>
-            <p>Detect payment confirmation in real time and generate a pass in seconds.</p>
-          </div>
-          <div class="card">
-            <strong>Offline verification</strong>
-            <p>Gate staff can validate a signed pass without any network connection.</p>
-          </div>
-          <div class="card">
-            <strong>No accounts</strong>
-            <p>Access is derived directly from payment settlement, not user profiles.</p>
-          </div>
-          <div class="card">
-            <strong>Minimal API</strong>
-            <p>Use three endpoints: create invoice, check status, fetch access token.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="demo">
-        <div class="section-title">Invoice demo</div>
-        <div class="cards">
-          <div class="card demo">
-            <strong>Generate a Lightning invoice</strong>
-            <p>Calls the daemon API at <code>/api/invoice</code> and returns the invoice details.</p>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <input id="amountInputDemo" type="number" min="1" value="250" style="padding:10px 14px;border-radius:10px;border:1px solid var(--stroke);width:140px;font-weight:600;" aria-label="Amount in sats" />
-              <button class="button primary" data-api="http://localhost:3000/api/invoice">Generate Invoice</button>
-            </div>
-            <div class="demo-output" id="demoOutput">Waiting for a request…</div>
-            <div class="demo-output" id="invoiceBox" style="display:none;margin-top:12px;"></div>
-          </div>
-          <div class="card">
-            <strong>What you get</strong>
-            <p>
-              A unique invoice string, payment hash, and expiry. After settlement, your
-              signed access token becomes available for offline verification.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="flow">
-        <div class="section-title">Pay → Pass flow</div>
-        <div class="cards">
-          <div class="card">
-            <strong>1. Create invoice</strong>
-            <p>Client requests a BOLT11 invoice from the API.</p>
-          </div>
-          <div class="card">
-            <strong>2. Pay with any wallet</strong>
-            <p>LDK node confirms settlement and emits PaymentClaimed.</p>
-          </div>
-          <div class="card">
-            <strong>3. Issue access token</strong>
-            <p>Service signs a payload with Ed25519 and returns a QR.</p>
-          </div>
-          <div class="card">
-            <strong>4. Verify offline</strong>
-            <p>Gate verifier checks signature, expiry, and amount locally.</p>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div class="section-title">Built for demos</div>
-        <div class="stripe">
-          <div class="logo-tag">LDK NODE</div>
-          <div class="logo-tag">ED25519 SIGNING</div>
-          <div class="logo-tag">OFFLINE VERIFY</div>
-          <div class="logo-tag">QR PAYLOAD</div>
-        </div>
-      </section>
-
-      <section>
-        <div class="section-title">System guarantees</div>
-        <div class="cards">
-          <div class="testimonial">
-            <strong>Settlement-gated issuance</strong>
-            <p>Access tokens only appear after the Lightning payment is claimed.</p>
-            <div>— Proof layer</div>
-          </div>
-          <div class="testimonial">
-            <strong>Replay safety</strong>
-            <p>Short expiries and nonces reduce reuse without an online database.</p>
-            <div>— Verifier rules</div>
-          </div>
-          <div class="testimonial">
-            <strong>Offline by design</strong>
-            <p>Public key verification keeps the gate working without connectivity.</p>
-            <div>— Access layer</div>
-          </div>
-        </div>
-      </section>
-
-      <section id="faq">
-        <div class="section-title">FAQ</div>
-        <div class="faq">
-          <details>
-            <summary>What wallets are supported?</summary>
-            <p>Any Lightning-enabled wallet that can pay a BOLT11 invoice will work.</p>
-          </details>
-          <details>
-            <summary>Do you store attendee data?</summary>
-            <p>No. Access is derived from payment settlement and signed tokens only.</p>
-          </details>
-          <details>
-            <summary>Can I use my own Lightning node?</summary>
-            <p>Yes. The demo runs on LDK; production can run on your infrastructure.</p>
-          </details>
-          <details>
-            <summary>How fast is the pass delivered after payment?</summary>
-            <p>Within seconds of settlement. The access token replaces the invoice immediately.</p>
-          </details>
-        </div>
-      </section>
-
-      <section id="guide">
-        <div class="section-title">HASKE Guide</div>
-        <div class="docs">
-          <aside class="docs-sidebar">
-            <div class="logo"><span class="logo-mark" aria-hidden="true"></span> HASKE Docs</div>
-            <div class="docs-search">Search HASKE docs</div>
-            <div class="docs-nav">
-              <strong>Get Started</strong>
-              <a class="active" href="#guide">Signing up</a>
-              <a href="#guide">Eligibility</a>
-              <a href="#guide">Admissions</a>
-              <strong>Operating</strong>
-              <a href="#guide">Pass issuance</a>
-              <a href="#guide">Settlement rules</a>
-              <a href="#guide">Privacy model</a>
-              <strong>Support</strong>
-              <a href="#faq">FAQ</a>
-              <a href="#pricing">Contact sales</a>
-            </div>
-          </aside>
-          <div class="docs-main">
-            <div>
-              <h3>Signing up</h3>
-              <p>
-                HASKE sign-ups are open to any organizer building privacy-first access flows. Each
-                workspace provisions a Lightning node profile and a dedicated pass namespace.
-              </p>
-            </div>
-            <div>
-              <strong>Eligibility</strong>
-              <p>To activate a HASKE workspace, you’ll need:</p>
-              <ul class="docs-list">
-                <li>A Lightning wallet capable of paying BOLT11 invoices.</li>
-                <li>A verified contact method for event support.</li>
-                <li>An event or product use case ready for onboarding.</li>
-              </ul>
-            </div>
-            <div>
-              <strong>Admissions</strong>
-              <p>
-                We admit teams on a rolling basis. If demand exceeds capacity, we prioritize
-                applications with upcoming events and clear deployment timelines.
-              </p>
-            </div>
-            <div>
-              <strong>Contributions are public</strong>
-              <p>
-                HASKE access passes are anonymous but auditable. Each pass can be verified without
-                revealing attendee identity, keeping check-ins fast and private.
-              </p>
-            </div>
-            <div>
-              <strong>Rules</strong>
-              <p>
-                Organizers must honor refund requests, avoid reselling passes, and ensure policies
-                are communicated before payment.
-              </p>
+            <div class="wallet-row">
+              <div class="wallet-support">Supports XLM / USDC</div>
+              <div class="button-row" id="checkoutActions">
+                <button class="button primary" id="walletButton" disabled>Open in Wallet</button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section class="footer">
-        <div>HASKE Pass · pay-to-enter access that works offline</div>
-        <div>Demo focus: settlement → signed token → offline verify</div>
+          <div class="status-bar" id="statusBar">
+            <div class="status-top">
+              <div class="status-main" id="statusMain">Waiting for payment...</div>
+              <div class="status-meta" id="statusMeta">Session inactive</div>
+            </div>
+            <div class="status-note" id="statusNote">Generating a secure payment session.</div>
+          </div>
+
+          <div class="pass-meta hidden" id="accessMeta">
+            <details>
+              <summary>View details</summary>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span>tx_hash</span>
+                  <code id="detailTxHash">n/a</code>
+                </div>
+                <div class="detail-item">
+                  <span>memo</span>
+                  <code id="detailMemo">n/a</code>
+                </div>
+                <div class="detail-item">
+                  <span>asset</span>
+                  <code id="detailAsset">n/a</code>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="button-row hidden" id="failureActions">
+            <button class="button primary" id="retryButton">Retry</button>
+            <button class="button secondary hidden" id="newPassButton">Generate new pass</button>
+          </div>
+
+          <div class="snapshot hidden" id="snapshot"></div>
+        </div>
       </section>
     </main>
 
     <script>
-      const themeToggle = document.getElementById("themeToggle");
-      const storedTheme = localStorage.getItem("light-theme");
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initialTheme = storedTheme || (prefersDark ? "dark" : "light");
+      const API_BASE = "http://localhost:3000";
+      const STORAGE_KEY = "haske-conversion-checkout-v3";
+      const POLL_MS = 3000;
+      const REQUEST_TIMEOUT_MS = 12000;
+      const MAX_RETRIES = 3;
 
-      function setTheme(theme) {
-        document.documentElement.setAttribute("data-theme", theme);
-        localStorage.setItem("light-theme", theme);
-        themeToggle.textContent = theme === "dark" ? "Dark mode" : "Light mode";
-      }
-
-      setTheme(initialTheme);
-
-      themeToggle.addEventListener("click", () => {
-        const current = document.documentElement.getAttribute("data-theme");
-        setTheme(current === "dark" ? "light" : "dark");
+      const STATES = Object.freeze({
+        INIT: "INIT",
+        WAITING: "WAITING",
+        DETECTED: "DETECTED",
+        CONFIRMED: "CONFIRMED",
+        EXPIRED: "EXPIRED",
+        ERROR: "ERROR",
       });
 
-      const targetDate = new Date();
-      targetDate.setDate(targetDate.getDate() + 8);
-      targetDate.setHours(targetDate.getHours() + 12);
+      const TRANSITIONS = Object.freeze({
+        [STATES.INIT]: [STATES.WAITING, STATES.ERROR],
+        [STATES.WAITING]: [STATES.DETECTED, STATES.EXPIRED, STATES.ERROR],
+        [STATES.DETECTED]: [STATES.CONFIRMED, STATES.EXPIRED, STATES.ERROR],
+        [STATES.CONFIRMED]: [STATES.EXPIRED],
+        [STATES.EXPIRED]: [STATES.WAITING],
+        [STATES.ERROR]: [STATES.WAITING],
+      });
 
-      const countdownEls = {
-        days: document.getElementById("days"),
-        hours: document.getElementById("hours"),
-        mins: document.getElementById("mins"),
-        secs: document.getElementById("secs"),
+      const elements = {
+        countdownCard: document.getElementById("countdownCard"),
+        countdownLabel: document.getElementById("countdownLabel"),
+        countdownValue: document.getElementById("countdownValue"),
+        qrBlock: document.getElementById("qrBlock"),
+        qrPlaceholder: document.getElementById("qrPlaceholder"),
+        paymentQrWrap: document.getElementById("paymentQrWrap"),
+        paymentQrImage: document.getElementById("paymentQrImage"),
+        accessQrWrap: document.getElementById("accessQrWrap"),
+        accessQrImage: document.getElementById("accessQrImage"),
+        walletButton: document.getElementById("walletButton"),
+        statusBar: document.getElementById("statusBar"),
+        statusMain: document.getElementById("statusMain"),
+        statusMeta: document.getElementById("statusMeta"),
+        statusNote: document.getElementById("statusNote"),
+        accessMeta: document.getElementById("accessMeta"),
+        detailTxHash: document.getElementById("detailTxHash"),
+        detailMemo: document.getElementById("detailMemo"),
+        detailAsset: document.getElementById("detailAsset"),
+        failureActions: document.getElementById("failureActions"),
+        retryButton: document.getElementById("retryButton"),
+        newPassButton: document.getElementById("newPassButton"),
+        snapshot: document.getElementById("snapshot"),
       };
 
+      let app = createInitialStore();
+      let pollTimer = null;
+      let countdownTimer = null;
+      let transitionTimer = null;
+
+      function createInitialStore() {
+        return {
+          state: STATES.INIT,
+          sessionId: null,
+          requestExpiresAt: null,
+          accessExpiresAt: null,
+          paymentData: null,
+          accessData: null,
+          lastError: null,
+          retries: 0,
+          statusText: "Session inactive",
+        };
+      }
+
+      function transition(nextState, updates = {}) {
+        const allowed = TRANSITIONS[app.state] || [];
+        if (app.state !== nextState && !allowed.includes(nextState)) {
+          throw new Error(`Illegal transition ${app.state} -> ${nextState}`);
+        }
+        app = { ...app, ...updates, state: nextState };
+        persist();
+        render();
+      }
+
+      function hydrateDirect(snapshot) {
+        app = { ...createInitialStore(), ...snapshot };
+        persist();
+        render();
+      }
+
+      function persist() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(app));
+      }
+
+      function clearPersisted() {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+
+      function stopTimers() {
+        if (pollTimer) {
+          clearTimeout(pollTimer);
+          pollTimer = null;
+        }
+        if (transitionTimer) {
+          clearTimeout(transitionTimer);
+          transitionTimer = null;
+        }
+      }
+
+      function formatSeconds(totalSeconds) {
+        const safe = Math.max(0, totalSeconds);
+        const minutes = Math.floor(safe / 60);
+        const seconds = safe % 60;
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }
+
+      function expiresInSeconds(unixSeconds) {
+        if (!unixSeconds) return 0;
+        return Math.max(0, Math.floor(unixSeconds - Date.now() / 1000));
+      }
+
+      function buildSnapshot() {
+        return [
+          `state: ${app.state}`,
+          `session_id: ${app.sessionId || "n/a"}`,
+          `request_expires_at: ${app.requestExpiresAt || "n/a"}`,
+          `access_expires_at: ${app.accessExpiresAt || "n/a"}`,
+          `retries: ${app.retries}`,
+          `error: ${app.lastError || "none"}`,
+        ].join("\n");
+      }
+
       function updateCountdown() {
-        const now = new Date();
-        const diff = Math.max(0, targetDate - now);
-        const totalSeconds = Math.floor(diff / 1000);
-        const days = Math.floor(totalSeconds / 86400);
-        const hours = Math.floor((totalSeconds % 86400) / 3600);
-        const mins = Math.floor((totalSeconds % 3600) / 60);
-        const secs = totalSeconds % 60;
+        const target = app.state === STATES.CONFIRMED ? app.accessExpiresAt : app.requestExpiresAt;
+        const secondsLeft = expiresInSeconds(target);
+        const danger = secondsLeft <= 60;
 
-        countdownEls.days.textContent = String(days).padStart(2, "0");
-        countdownEls.hours.textContent = String(hours).padStart(2, "0");
-        countdownEls.mins.textContent = String(mins).padStart(2, "0");
-        countdownEls.secs.textContent = String(secs).padStart(2, "0");
-      }
+        elements.countdownCard.classList.toggle("is-danger", danger);
+        elements.countdownValue.textContent = formatSeconds(secondsLeft);
+        elements.countdownLabel.textContent =
+          app.state === STATES.CONFIRMED ? "Valid for" : "Session expires in";
 
-      updateCountdown();
-      setInterval(updateCountdown, 1000);
-
-      const demoOutput = document.getElementById("demoOutput");
-      const invoiceBox = document.getElementById("invoiceBox");
-      const amountInputs = [
-        document.getElementById("amountInputHero"),
-        document.getElementById("amountInputCard"),
-        document.getElementById("amountInputDemo"),
-      ].filter(Boolean);
-      const apiButtons = document.querySelectorAll("[data-api]");
-      const routeButtons = document.querySelectorAll("[data-route]");
-
-      const eventGrid = document.getElementById("eventGrid");
-      const noResults = document.getElementById("noResults");
-      const eventSearch = document.getElementById("eventSearch");
-      const cityFilter = document.getElementById("cityFilter");
-      const cityFilterInline = document.getElementById("cityFilterInline");
-      const monthFilter = document.getElementById("monthFilter");
-      const priceFilter = document.getElementById("priceFilter");
-      const onlyAvailable = document.getElementById("onlyAvailable");
-      const resetFilters = document.getElementById("resetFilters");
-      const searchTrigger = document.getElementById("searchTrigger");
-      const bookingForm = document.getElementById("bookingForm");
-      const selectedTitle = document.getElementById("selectedTitle");
-      const selectedMeta = document.getElementById("selectedMeta");
-      const bookingSummary = document.getElementById("bookingSummary");
-      const bookingStatus = document.getElementById("bookingStatus");
-      const bookSeats = document.getElementById("bookSeats");
-      const bookName = document.getElementById("bookName");
-      const bookEmail = document.getElementById("bookEmail");
-      const bookNotes = document.getElementById("bookNotes");
-
-      const events = [
-        {
-          id: "ltx-01",
-          title: "Lightning Builders Summit",
-          city: "Austin, TX",
-          venue: "Fair Market",
-          date: "2026-03-14",
-          time: "18:30",
-          price: 120,
-          seatsLeft: 38,
-          tags: ["lightning", "builder track", "demo"],
-          image: "https://images.unsplash.com/photo-1515165562835-c4cfa3ae0f98?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-          id: "ltx-02",
-          title: "Node Operators Workshop",
-          city: "New York, NY",
-          venue: "Brooklyn Navy Yard",
-          date: "2026-02-20",
-          time: "10:00",
-          price: 85,
-          seatsLeft: 12,
-          tags: ["operations", "hands-on"],
-          image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-          id: "ltx-03",
-          title: "Payments + Privacy Forum",
-          city: "Chicago, IL",
-          venue: "Revel Fulton Market",
-          date: "2026-04-05",
-          time: "09:30",
-          price: 140,
-          seatsLeft: 0,
-          tags: ["privacy", "policy", "keynote"],
-          image: "https://images.unsplash.com/photo-1464375117522-1311d6a5b81f?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-          id: "ltx-04",
-          title: "LDK Hack Evening",
-          city: "San Francisco, CA",
-          venue: "Pier 70",
-          date: "2026-02-08",
-          time: "17:00",
-          price: 45,
-          seatsLeft: 26,
-          tags: ["hack", "hands-on", "dev"],
-          image: "https://images.unsplash.com/photo-1525182008055-f88b95ff7980?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-          id: "ltx-05",
-          title: "Lightning Live @ The Fillmore",
-          city: "Philadelphia, PA",
-          venue: "The Fillmore",
-          date: "2026-03-02",
-          time: "19:00",
-          price: 95,
-          seatsLeft: 44,
-          tags: ["music", "live", "experience"],
-          image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
-        },
-      ];
-
-      let selectedEvent = null;
-
-      const formatCurrency = (value) =>
-        new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(
-          value
-        );
-
-      function monthKey(dateString) {
-        return dateString.slice(0, 7); // YYYY-MM
-      }
-
-      function monthLabel(dateString) {
-        const d = new Date(`${dateString}T00:00:00`);
-        return d.toLocaleString("en-US", { month: "long", year: "numeric" });
-      }
-
-      function dateLabel(evt) {
-        const d = new Date(`${evt.date}T${evt.time}:00`);
-        return d.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric" }) + ` · ${evt.time}`;
-      }
-
-      function buildFilters() {
-        const cities = [...new Set(events.map((e) => e.city))].sort();
-        cities.forEach((city) => {
-          [cityFilter, cityFilterInline].forEach((select) => {
-            if (!select) return;
-            const opt = document.createElement("option");
-            opt.value = city;
-            opt.textContent = city;
-            select.appendChild(opt);
+        if (secondsLeft === 0 && [STATES.WAITING, STATES.DETECTED].includes(app.state)) {
+          stopTimers();
+          transition(STATES.EXPIRED, {
+            statusText: "Session expired",
+            lastError: null,
           });
-        });
-
-        const months = [...new Set(events.map((e) => monthKey(e.date)))].sort();
-        months.forEach((month) => {
-          const opt = document.createElement("option");
-          opt.value = month;
-          opt.textContent = monthLabel(`${month}-01`);
-          monthFilter?.appendChild(opt);
-        });
-      }
-
-      function matchesFilters(evt) {
-        const term = eventSearch.value.trim().toLowerCase();
-        const maxPrice = Number(priceFilter.value || 0);
-        const cityValue = cityFilter.value || cityFilterInline?.value || "";
-
-        const termMatch =
-          !term ||
-          evt.title.toLowerCase().includes(term) ||
-          evt.city.toLowerCase().includes(term) ||
-          evt.venue.toLowerCase().includes(term) ||
-          evt.tags.some((tag) => tag.toLowerCase().includes(term));
-
-        const cityMatch = !cityValue || evt.city === cityValue;
-        const monthMatch = !monthFilter.value || monthKey(evt.date) === monthFilter.value;
-        const priceMatch = !maxPrice || evt.price <= maxPrice;
-        const availabilityMatch = !onlyAvailable.checked || evt.seatsLeft > 0;
-
-        return termMatch && cityMatch && monthMatch && priceMatch && availabilityMatch;
-      }
-
-      function renderEvents() {
-        if (!eventGrid) return;
-        eventGrid.innerHTML = "";
-        const filtered = events.filter(matchesFilters);
-        noResults.style.display = filtered.length ? "none" : "block";
-
-        filtered.forEach((evt) => {
-          const card = document.createElement("div");
-          card.className = "event-card";
-          card.innerHTML = `
-            <div class="event-media">
-              <img src="${evt.image}" alt="${evt.title}" loading="lazy" />
-              <div class="status-chip">${evt.seatsLeft > 0 ? `${evt.seatsLeft} seats left` : "Sold out"}</div>
-            </div>
-            <div style="padding:12px;">
-              <h4>${evt.title}</h4>
-              <div class="meta">${evt.city} · ${evt.venue}</div>
-              <div class="meta">${dateLabel(evt)}</div>
-              <div class="meta">
-                <span class="badge">${formatCurrency(evt.price)}</span>
-                <span class="badge" style="background:rgba(255,138,61,0.12);color:var(--accent-2);">Lightning-ready</span>
-              </div>
-              <div class="meta" style="gap:6px;">
-                ${evt.tags.map((tag) => `<span class="badge" style="background:rgba(15,18,32,0.06);color:var(--muted);">${tag}</span>`).join("")}
-              </div>
-              <button class="button primary" data-event-id="${evt.id}" ${evt.seatsLeft === 0 ? "disabled" : ""} style="margin-top:10px;width:100%;">
-                ${selectedEvent?.id === evt.id ? "Selected" : "Select & book"}
-              </button>
-            </div>
-          `;
-          eventGrid.appendChild(card);
-        });
-      }
-
-      function setSelected(eventId) {
-        selectedEvent = events.find((evt) => evt.id === eventId) || null;
-        if (!selectedEvent) {
-          selectedTitle.textContent = "No event selected yet";
-          selectedMeta.textContent = "Pick an event on the left to see details.";
-          bookingSummary.textContent = "Total: —";
-          return;
         }
 
-        selectedTitle.textContent = selectedEvent.title;
-        selectedMeta.innerHTML = `
-          <div><strong>${selectedEvent.city}</strong> — ${selectedEvent.venue}</div>
-          <div>${dateLabel(selectedEvent)}</div>
-          <div>${formatCurrency(selectedEvent.price)} · ${selectedEvent.seatsLeft} seats remaining</div>
-        `;
-        updateBookingSummary();
-        renderEvents();
-      }
-
-      function updateBookingSummary() {
-        if (!selectedEvent) {
-          bookingSummary.textContent = "Total: —";
-          return;
+        if (secondsLeft === 0 && app.state === STATES.CONFIRMED) {
+          stopTimers();
+          transition(STATES.EXPIRED, {
+            statusText: "Pass expired",
+          });
         }
-        const seats = Number(bookSeats.value || 1);
-        const total = selectedEvent.price * seats;
-        bookingSummary.textContent = `Total: ${formatCurrency(total)} for ${seats} seat${seats > 1 ? "s" : ""}`;
       }
 
-      function wireEventListeners() {
-        [eventSearch, cityFilter, cityFilterInline, monthFilter, priceFilter, onlyAvailable].forEach((el) =>
-          el?.addEventListener("input", renderEvents)
+      function startCountdown() {
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+        }
+        updateCountdown();
+        countdownTimer = setInterval(updateCountdown, 1000);
+      }
+
+      function setStatusAppearance(mode) {
+        elements.statusBar.classList.remove("is-detected", "is-confirmed", "is-expired", "is-error");
+        if (mode) {
+          elements.statusBar.classList.add(mode);
+        }
+      }
+
+      function render() {
+        elements.snapshot.textContent = buildSnapshot();
+        elements.snapshot.classList.toggle("hidden", app.state !== STATES.ERROR);
+        elements.failureActions.classList.toggle("hidden", ![STATES.EXPIRED, STATES.ERROR].includes(app.state));
+        elements.newPassButton.classList.toggle("hidden", app.state !== STATES.EXPIRED);
+        elements.retryButton.textContent = app.state === STATES.ERROR ? "Retry" : "Try again";
+        elements.accessMeta.classList.toggle("hidden", app.state !== STATES.CONFIRMED);
+
+        elements.qrBlock.classList.toggle("is-dimmed", app.state === STATES.DETECTED);
+        elements.paymentQrWrap.classList.toggle("hidden", !app.paymentData?.qr_png || app.state === STATES.CONFIRMED);
+        elements.accessQrWrap.classList.toggle("hidden", !app.accessData?.access_qr_png || app.state !== STATES.CONFIRMED);
+        elements.qrPlaceholder.classList.toggle(
+          "hidden",
+          Boolean((app.paymentData?.qr_png && app.state !== STATES.CONFIRMED) || (app.accessData?.access_qr_png && app.state === STATES.CONFIRMED))
         );
 
-        cityFilter?.addEventListener("change", () => {
-          if (cityFilterInline) cityFilterInline.value = cityFilter.value;
-          renderEvents();
-        });
+        elements.walletButton.disabled = !app.paymentData?.qr_payload || ![STATES.WAITING, STATES.DETECTED].includes(app.state);
 
-        cityFilterInline?.addEventListener("change", () => {
-          if (cityFilter) cityFilter.value = cityFilterInline.value;
-          renderEvents();
-        });
+        if (app.paymentData?.qr_png) {
+          elements.paymentQrImage.src = app.paymentData.qr_png;
+        }
 
-        resetFilters?.addEventListener("click", () => {
-          eventSearch.value = "";
-          cityFilter.value = "";
-          if (cityFilterInline) cityFilterInline.value = "";
-          monthFilter.value = "";
-          priceFilter.value = "";
-          onlyAvailable.checked = false;
-          renderEvents();
-        });
+        if (app.accessData?.access_qr_png) {
+          elements.accessQrImage.src = app.accessData.access_qr_png;
+        }
 
-        searchTrigger?.addEventListener("click", renderEvents);
+        if (app.state === STATES.WAITING) {
+          setStatusAppearance("");
+          elements.statusMain.textContent = "Waiting for payment...";
+          elements.statusMeta.textContent = app.statusText || "Secure session active";
+          elements.statusNote.textContent = "Scan the QR or open it in a Stellar wallet to pay.";
+        }
 
-        bookSeats?.addEventListener("change", updateBookingSummary);
+        if (app.state === STATES.DETECTED) {
+          setStatusAppearance("is-detected");
+          elements.statusMain.innerHTML = 'Payment detected <span class="loader" aria-hidden="true"></span>';
+          elements.statusMeta.textContent = "Confirming on-chain";
+          elements.statusNote.textContent = "Still waiting... This can take up to 30 seconds.";
+        }
 
-        eventGrid?.addEventListener("click", (evt) => {
-          const button = evt.target.closest("[data-event-id]");
-          if (!button) return;
-          const id = button.getAttribute("data-event-id");
-          if (id) {
-            setSelected(id);
+        if (app.state === STATES.CONFIRMED) {
+          setStatusAppearance("is-confirmed");
+          elements.statusMain.textContent = "Verified & Ready";
+          elements.statusMeta.textContent = "Works offline";
+          elements.statusNote.textContent = "Payment confirmed. Show this pass at entry.";
+          elements.detailTxHash.textContent = app.accessData?.tx_hash || "n/a";
+          elements.detailMemo.textContent = app.paymentData?.memo || "n/a";
+          elements.detailAsset.textContent = app.paymentData?.asset || "n/a";
+        }
+
+        if (app.state === STATES.EXPIRED) {
+          setStatusAppearance("is-expired");
+          elements.statusMain.textContent = "Session expired";
+          elements.statusMeta.textContent = "Generate new pass";
+          elements.statusNote.textContent = "The current payment session can no longer be used.";
+        }
+
+        if (app.state === STATES.ERROR) {
+          setStatusAppearance("is-error");
+          elements.statusMain.textContent = "Something went wrong";
+          elements.statusMeta.textContent = "Retry";
+          elements.statusNote.textContent = app.lastError || "Network recovery failed. Try again.";
+        }
+      }
+
+      async function fetchJson(url, options = {}, retryCount = 0) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+        try {
+          const response = await fetch(url, { ...options, signal: controller.signal });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
           }
-        });
+          return await response.json();
+        } catch (error) {
+          if (retryCount >= MAX_RETRIES) {
+            throw error;
+          }
+          app = { ...app, retries: retryCount + 1, statusText: `Retry ${retryCount + 1}/${MAX_RETRIES}` };
+          persist();
+          render();
+          await new Promise((resolve) => setTimeout(resolve, 700 * (retryCount + 1)));
+          return fetchJson(url, options, retryCount + 1);
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
 
-        bookingForm?.addEventListener("submit", (e) => {
-          e.preventDefault();
-          if (!selectedEvent) {
-            bookingStatus.textContent = "Pick an event before booking.";
-            bookingStatus.style.color = "var(--accent-2)";
-            return;
+      async function createPaymentSession() {
+        stopTimers();
+
+        if (app.state === STATES.EXPIRED || app.state === STATES.ERROR) {
+          transition(STATES.WAITING, {
+            sessionId: null,
+            requestExpiresAt: null,
+            accessExpiresAt: null,
+            paymentData: null,
+            accessData: null,
+            lastError: null,
+            retries: 0,
+            statusText: "Creating session",
+          });
+        } else if (app.state === STATES.INIT) {
+          transition(STATES.WAITING, {
+            statusText: "Creating session",
+          });
+        }
+
+        try {
+          const data = await fetchJson(`${API_BASE}/api/payment-request`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount: "10",
+              asset: "XLM",
+              event_id: "haske-demo-event",
+            }),
+          });
+
+          app = {
+            ...app,
+            state: STATES.WAITING,
+            sessionId: data.session_id,
+            requestExpiresAt: data.request_expires_at,
+            paymentData: data,
+            accessData: null,
+            accessExpiresAt: null,
+            lastError: null,
+            retries: 0,
+            statusText: "Secure session active",
+          };
+          persist();
+          render();
+          startCountdown();
+          scheduleStatusPoll();
+        } catch (error) {
+          transition(STATES.ERROR, {
+            lastError: error.message,
+            statusText: "Create failed",
+          });
+        }
+      }
+
+      function scheduleStatusPoll() {
+        stopTimers();
+        startCountdown();
+
+        if (!app.sessionId || ![STATES.WAITING, STATES.DETECTED].includes(app.state)) {
+          return;
+        }
+
+        pollTimer = setTimeout(checkStatus, POLL_MS);
+      }
+
+      async function checkStatus() {
+        if (!app.sessionId) {
+          return;
+        }
+
+        try {
+          const status = await fetchJson(`${API_BASE}/api/payment-status/${app.sessionId}`);
+          handleStatus(status);
+        } catch (error) {
+          transition(STATES.ERROR, {
+            lastError: error.message,
+            statusText: "Watcher offline",
+          });
+        }
+      }
+
+      function handleStatus(status) {
+        app = {
+          ...app,
+          requestExpiresAt: status.request_expires_at || app.requestExpiresAt,
+          accessExpiresAt: status.expires_at || app.accessExpiresAt,
+          accessData: status,
+          lastError: null,
+          retries: 0,
+        };
+
+        if (status.status === "expired") {
+          transition(STATES.EXPIRED, {
+            statusText: "Session expired",
+          });
+          return;
+        }
+
+        if (status.status === "confirmed") {
+          if (app.state === STATES.WAITING) {
+            transition(STATES.DETECTED, {
+              statusText: "Payment detected",
+            });
+          } else {
+            render();
           }
-          const seatsRequested = Number(bookSeats.value || 1);
-          if (selectedEvent.seatsLeft < seatsRequested) {
-            bookingStatus.textContent = "Not enough seats left for that quantity.";
-            bookingStatus.style.color = "var(--accent-2)";
-            return;
+
+          transitionTimer = setTimeout(() => {
+            transition(STATES.CONFIRMED, {
+              statusText: "Payment confirmed",
+            });
+            startCountdown();
+          }, 850);
+          return;
+        }
+
+        if (status.status === "detected") {
+          if (app.state === STATES.WAITING) {
+            transition(STATES.DETECTED, {
+              statusText: "Payment detected",
+            });
+          } else {
+            render();
           }
-          selectedEvent.seatsLeft -= seatsRequested;
-          const ref = `HAS-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-          bookingStatus.textContent = `Booked! Ref ${ref} · We emailed ${bookEmail.value}`;
-          bookingStatus.style.color = "var(--accent)";
-          bookingForm.reset();
-          bookSeats.value = "1";
-          setSelected(selectedEvent.id);
+          scheduleStatusPoll();
+          return;
+        }
+
+        if (status.status === "waiting") {
+          if (app.state !== STATES.WAITING) {
+            hydrateDirect({
+              ...app,
+              state: STATES.WAITING,
+              statusText: "Secure session active",
+            });
+          } else {
+            render();
+          }
+          scheduleStatusPoll();
+          return;
+        }
+
+        transition(STATES.ERROR, {
+          lastError: "Unknown status payload",
+          statusText: "Bad response",
         });
       }
 
-      buildFilters();
-      wireEventListeners();
-      renderEvents();
-      setSelected(events[0].id);
-
-      routeButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const target = button.getAttribute("data-route");
-          if (target) {
-            window.location.hash = target;
-          }
-        });
-      });
-
-      function formatStatus(payload) {
-        const lines = [];
-        lines.push(`status: ${payload.status}`);
-        lines.push(`expires_at: ${payload.expires_at}`);
-        if (payload.access_token) {
-          lines.push(`access_token: ${payload.access_token}`);
+      function restore() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          render();
+          createPaymentSession();
+          return;
         }
-        if (payload.access_qr_png) {
-          lines.push(`access_qr_png: ${payload.access_qr_png}`);
-        }
-        if (payload.access_qr_ascii) {
-          lines.push(`access_qr_ascii:\n${payload.access_qr_ascii}`);
-        }
-        return lines.join("\n");
-      }
 
-      async function pollInvoiceStatus(baseEndpoint, invoiceId) {
-        const statusUrl = `${baseEndpoint}/${invoiceId}`;
-        const startedAt = Date.now();
-        demoOutput.textContent = `invoice_id: ${invoiceId}\nstatus: pending`;
+        try {
+          const stored = JSON.parse(raw);
+          hydrateDirect(stored);
 
-        return new Promise((resolve) => {
-          const interval = setInterval(async () => {
-            const elapsed = Date.now() - startedAt;
-            if (elapsed > 90_000) {
-              clearInterval(interval);
-              demoOutput.textContent += "\nstatus: timeout";
-              resolve();
+          if ([STATES.WAITING, STATES.DETECTED].includes(app.state)) {
+            if (expiresInSeconds(app.requestExpiresAt) === 0) {
+              transition(STATES.EXPIRED, {
+                statusText: "Recovered expired session",
+              });
               return;
             }
-            try {
-              const res = await fetch(statusUrl);
-              if (!res.ok) {
-                throw new Error(`Status failed: ${res.status}`);
-              }
-              const payload = await res.json();
-              demoOutput.textContent = formatStatus(payload);
-              if (payload.status === "settled" || payload.access_token) {
-                clearInterval(interval);
-                resolve();
-              }
-            } catch (err) {
-              clearInterval(interval);
-              demoOutput.textContent = `API error: ${err.message}`;
-              resolve();
-            }
-          }, 2000);
-        });
-      }
-
-      function getAmountMsat() {
-        const first = amountInputs.find((el) => el && el.value);
-        const sats = Math.max(1, Number(first?.value || 250));
-        return Math.floor(sats * 1000);
-      }
-
-      apiButtons.forEach((button) => {
-        button.addEventListener("click", async () => {
-          const endpoint = button.getAttribute("data-api");
-          if (!endpoint) return;
-          const originalText = button.textContent;
-          button.disabled = true;
-          button.textContent = "Requesting…";
-          const amount_msat = getAmountMsat();
-          try {
-            const response = await fetch(endpoint, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ amount_msat, description: "HASKE live demo" }),
-            });
-            if (!response.ok) {
-              throw new Error(`Request failed: ${response.status}`);
-            }
-            const data = await response.json();
-            demoOutput.textContent = JSON.stringify(data, null, 2);
-
-            if (data.invoice) {
-              invoiceBox.style.display = "block";
-              invoiceBox.innerHTML = `
-                <div><strong>Amount:</strong> ${(amount_msat / 1000).toLocaleString()} sats</div>
-                <div style="margin:8px 0;"><strong>Invoice:</strong> <code style="word-break:break-all;">${data.invoice}</code></div>
-                ${data.invoice_qr_png ? `<img src="${data.invoice_qr_png}" alt="Invoice QR" style="max-width:220px;border:1px solid var(--stroke);border-radius:12px;" />` : ""}
-              `;
-            }
-
-            if (data && data.invoice_id) {
-              await pollInvoiceStatus(endpoint, data.invoice_id);
-            }
-          } catch (err) {
-            demoOutput.textContent = `API error: ${err.message}`;
-          } finally {
-            button.disabled = false;
-            button.textContent = originalText;
+            startCountdown();
+            scheduleStatusPoll();
+            return;
           }
-        });
+
+          if (app.state === STATES.CONFIRMED) {
+            startCountdown();
+            return;
+          }
+
+          if ([STATES.EXPIRED, STATES.ERROR].includes(app.state)) {
+            render();
+            return;
+          }
+
+          createPaymentSession();
+        } catch (error) {
+          clearPersisted();
+          app = createInitialStore();
+          render();
+          createPaymentSession();
+        }
+      }
+
+      elements.walletButton.addEventListener("click", () => {
+        if (!app.paymentData?.qr_payload) {
+          return;
+        }
+        window.location.href = app.paymentData.qr_payload;
       });
+
+      elements.retryButton.addEventListener("click", () => {
+        createPaymentSession();
+      });
+
+      elements.newPassButton.addEventListener("click", () => {
+        createPaymentSession();
+      });
+
+      render();
+      restore();
     </script>
   </body>
 </html>

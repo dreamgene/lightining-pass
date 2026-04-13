@@ -2,6 +2,7 @@ use axum::extract::State;
 use axum::http::StatusCode;
 use axum::Json;
 use serde::{Deserialize, Serialize};
+use qr::render_png_data_url;
 use shared_types::CreatePaymentRequest;
 
 use crate::state::AppState;
@@ -21,6 +22,7 @@ pub struct CreatePaymentResponse {
     pub asset: String,
     pub memo: String,
     pub qr_payload: String,
+    pub qr_png: String,
     pub request_expires_at: u64,
 }
 
@@ -51,7 +53,9 @@ pub async fn create_payment_request(
         amount: session.payment_request.amount,
         asset: session.payment_request.asset,
         memo: session.payment_request.memo,
-        qr_payload: session.payment_request.qr_payload,
+        qr_payload: session.payment_request.qr_payload.clone(),
+        qr_png: render_png_data_url(&session.payment_request.qr_payload, 320)
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?,
         request_expires_at: session.payment_request.expires_at,
     }))
 }

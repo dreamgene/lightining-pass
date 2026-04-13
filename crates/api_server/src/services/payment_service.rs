@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, Result};
+use serde_json::Value;
 use tokio::sync::RwLock;
 
 use shared_types::{PaymentRequest, PaymentStatusResponse};
@@ -89,12 +90,29 @@ impl PaymentService {
     }
 
     pub fn to_status_response(&self, session: SessionRecord) -> PaymentStatusResponse {
+        let now = now_secs();
+        let payment_request = session.payment_request.clone();
+        let status = if session.access_token.is_some() {
+            "confirmed"
+        } else if session.paid || session.tx_hash.is_some() {
+            "detected"
+        } else if payment_request.expires_at <= now {
+            "expired"
+        } else {
+            "waiting"
+        };
+
         PaymentStatusResponse {
-            session_id: session.payment_request.session_id,
+            session_id: payment_request.session_id.clone(),
+            status: status.to_string(),
             paid: session.paid,
+            request_expires_at: payment_request.expires_at,
             expires_at: session.expires_at,
+            payment_request,
             tx_hash: session.tx_hash,
-            access_token: session.access_token,
+            access_token: session.access_token.map(|token| {
+                serde_json::from_str::<Value>(&token).unwrap_or(Value::String(token))
+            }),
             access_qr_png: session.access_qr_png,
             access_qr_ascii: session.access_qr_ascii,
         }

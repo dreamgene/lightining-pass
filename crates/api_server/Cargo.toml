@@ -13,6 +13,7 @@ payment_core = { path = "../payment_core" }
 qr = { path = "../qr" }
 rand = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 shared_types = { path = "../shared_types" }
 stellar_adapter = { path = "../stellar_adapter" }
 tokio = { workspace = true }
